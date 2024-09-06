@@ -1,19 +1,122 @@
-import React, {useEffect, useState} from "react";
-import {auth, db} from "../../config/Firebase";
-import {useNavigate} from "react-router-dom";
-import {collection, getDocs, query, where} from "firebase/firestore";
+import React, { useEffect, useState, useCallback } from "react";
+import { db, storage } from "../../config/Firebase";
+import {
+  collection,
+  getDocs,
+  query,
+  where,
+  orderBy,
+  limit,
+} from "firebase/firestore";
+import { getDownloadURL, ref } from "firebase/storage";
 import Header from "../components/Header";
 import alumni from "../../assets/images/image_1_about.png";
 import join from "../../assets/images/join.jpg";
 import Footer from "../components/Footer";
-import ScrollReveal from 'scrollreveal';
-
-
+import ScrollReveal from "scrollreveal";
+import { Link } from "react-router-dom";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import {
+  faUserGraduate,
+  faMale,
+  faFemale,
+} from "@fortawesome/free-solid-svg-icons";
 
 const Home = () => {
+  const [totalAlumni, setTotalAlumni] = useState(0);
+  const [maleAlumni, setMaleAlumni] = useState(0);
+  const [femaleAlumni, setFemaleAlumni] = useState(0);
+  const [newsData, setNewsData] = useState([]);
+  const [popularNews, setPopularNews] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  ScrollReveal().reveal('.scroll', { delay: 500}, {duration: 3000}, {distance: '68px'} , {origin: 'bottom'});
-  ScrollReveal({ reset: true });
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const usersCollection = collection(db, "users");
+
+        const totalQuerySnapshot = await getDocs(usersCollection);
+        setTotalAlumni(totalQuerySnapshot.size);
+
+        const maleQuery = query(
+          usersCollection,
+          where("gender", "==", "Laki-Laki")
+        );
+        const maleQuerySnapshot = await getDocs(maleQuery);
+        setMaleAlumni(maleQuerySnapshot.size);
+
+        const femaleQuery = query(
+          usersCollection,
+          where("gender", "==", "Perempuan")
+        );
+        const femaleQuerySnapshot = await getDocs(femaleQuery);
+        setFemaleAlumni(femaleQuerySnapshot.size);
+      } catch (error) {
+        console.error("Error fetching data: ", error);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  const fetchNews = useCallback(async () => {
+    try {
+      const newsCollection = collection(db, "news");
+      const newsSnapshot = await getDocs(newsCollection);
+      const newsList = newsSnapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+
+      const newsDataWithImages = await Promise.all(
+        newsList.map(async (newsItem) => {
+          if (newsItem.image) {
+            const imageUrl = await getDownloadURL(
+              ref(storage, `news/${newsItem.image}`)
+            );
+            return { ...newsItem, imageUrl };
+          }
+          return newsItem;
+        })
+      );
+
+      setNewsData(newsDataWithImages);
+
+      const popularNewsQuery = query(
+        newsCollection,
+        orderBy("views", "desc"),
+        limit(5)
+      );
+      const popularNewsSnapshot = await getDocs(popularNewsQuery);
+      const popularNewsList = popularNewsSnapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+
+      setPopularNews(popularNewsList);
+      console.log("Data Berita ", popularNewsList);
+
+      setLoading(false);
+    } catch (error) {
+      console.error("Error fetching news:", error);
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchNews();
+  }, [fetchNews]);
+
+  useEffect(() => {
+    ScrollReveal().reveal(".scroll", {
+      delay: 500,
+      duration: 3000,
+      distance: "68px",
+      origin: "bottom",
+    });
+    ScrollReveal({ reset: true });
+  }, []);
+
   return (
     <>
       <div>
@@ -52,32 +155,46 @@ const Home = () => {
           </div>
         </section>
 
-        <section id="join" className="pt-28 pb-52 bg-primary scroll">
-        <section className="section mb-28">
-          <div className="container mx-auto">
-            <div className="flex flex-col xl:flex-row gap-y-6 justify-between">
-              <div className=" headline stast__item flex-1 xl:border-r  flex flex-col items-center">
-                <div className="text-4xl xl:text-[64px] font-semibold text-white xl:mb-8">
-                  +5128
+        <section id="join" className="pt-20 pb-52 bg-primary scroll">
+          <section className="section mb-10">
+            <div className="container mx-auto">
+              <div className="flex flex-col xl:flex-row gap-y-6 justify-between">
+                <div className="headline stast__item flex-1 xl:border-r flex flex-col items-center">
+                  <div className="flex flex-col items-center text-white">
+                    <FontAwesomeIcon
+                      icon={faUserGraduate}
+                      className="text-6xl mb-2"
+                    />
+                    <div className="mt-6 text-4xl xl:text-[64px] font-semibold xl:mb-8">
+                      {totalAlumni}
+                    </div>
+                    <div>Alumni</div>
+                  </div>
                 </div>
-                <div className="text-white">Alumni</div>
-              </div>
-              <div className="stast__item flex-1 xl:border-r flex flex-col items-center">
-                <div className="text-4xl xl:text-[64px] font-semibold text-white xl:mb-8">
-                  26
+                <div className="stast__item flex-1 xl:border-r flex flex-col items-center">
+                  <div className="flex flex-col items-center text-white">
+                    <FontAwesomeIcon icon={faMale} className="text-6xl mb-2" />
+                    <div className="mt-6 text-4xl xl:text-[64px] font-semibold xl:mb-8">
+                      {maleAlumni}
+                    </div>
+                    <div>Laki-Laki</div>
+                  </div>
                 </div>
-                <div  className="text-white">Laki-Laki</div>
-              </div>
-              <div className="stast__item flex-1 xl:border-r flex flex-col items-center">
-                <div className="text-4xl xl:text-[64px] font-semibold text-white xl:mb-8">
-                  56
+                <div className="stast__item flex-1 xl:border-r flex flex-col items-center">
+                  <div className="flex flex-col items-center text-white">
+                    <FontAwesomeIcon
+                      icon={faFemale}
+                      className="text-6xl mb-2"
+                    />
+                    <div className="mt-6 text-4xl xl:text-[64px] font-semibold xl:mb-8">
+                      {femaleAlumni}
+                    </div>
+                    <div>Perempuan</div>
+                  </div>
                 </div>
-                <div  className="text-white">Perempuan</div>
               </div>
-             
             </div>
-          </div>
-        </section>
+          </section>
           <div className="container mx-auto">
             <div className="flex flex-wrap">
               <div className="w-full self-end px-4 lg:w-1/2">
@@ -92,7 +209,7 @@ const Home = () => {
               <div className="w-full self-center px-4 lg:w-1/2">
                 <p className="font-medium text-base text-stroke mb-6 kg:text-lg text-justify text-white">
                   "Ayo bergabung bersama kami di Ikatan Alumni Teknik
-                  Informatika UIN SGD Bandung ! Kami membuka pelukan untuk
+                  Informatika UIN SGD Bandung! Kami membuka pelukan untuk
                   menyambut semua alumni dengan hangat. Bersama, kita dapat
                   mempererat jaringan, berbagi pengalaman, dan membangun
                   komunitas yang kuat. Mari berkontribusi pada pengembangan
@@ -126,121 +243,57 @@ const Home = () => {
             </div>
 
             <div className="flex flex-wrap">
-              <div className="w-full px-4 lg:w-1/2 xl:w-1/3">
-                <div className="bg-white rounded-xl overflow-hidden shadow-lg mb-10">
-                  <img
-                    src="https://source.unsplash.com/360x200?programming"
-                    alt="alt"
-                    className="w-full"
-                  />
-                  <div className="py-6 px-6">
-                    <h3>
-                      <a
-                        href="#"
-                        className="block mb-3 font-semibold text-xl text-primary hover:text-highlight truncate"
-                      >
-                        Tips Belajar Programming
-                      </a>
-                    </h3>
-                    <p className="font-medium text-base text-stroke mb-2">
-                      Lorem ipsum dolor sit amet consectetur adipisicing elit.
-                      Laudantium, numquam!
-                    </p>
-                    <div className="flex justify-end pt-4">
-                      <a
-                        href="#"
-                        className="font-medium text-sm text-white bg-blue-500 py-2 px-4 rounded-lg hover:opacity-60 duration-300"
-                      >
-                        Baca Selengkapnya
-                      </a>
+              {newsData.map((news) => (
+                <div key={news.id} className="w-full px-4 lg:w-1/2 xl:w-1/3">
+                  <div className="bg-white rounded-xl overflow-hidden shadow-lg mb-10">
+                    <div className="w-full h-60 overflow-hidden">
+                      <img
+                        src={news.imageUrl}
+                        alt={news.title}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                    <div className="py-6 px-6">
+                      <h3>
+                        <a
+                          href={`/news/${news.id}`} // Use Link component from 'react-router-dom' for navigation
+                          className="block mb-3 font-semibold text-xl text-primary hover:text-highlight truncate"
+                        >
+                          {news.title}
+                        </a>
+                      </h3>
+                      <p className="font-medium text-base text-stroke mb-2">
+                        {news.description}
+                      </p>
+                      <div className="flex justify-end pt-4">
+                        <Link
+                          to={`/news/${news.id}`}
+                          className="font-medium text-sm text-white bg-blue-500 py-2 px-4 rounded-lg hover:opacity-60 duration-300 flex items-center"
+                        >
+                          Baca Selengkapnya
+                          <i className="fas fa-arrow-right ml-2"></i>
+                        </Link>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
+              ))}
+            </div>
 
-              <div className="w-full px-4 lg:w-1/2 xl:w-1/3">
-                <div className="bg-white rounded-xl overflow-hidden shadow-lg mb-10">
-                  <img
-                    src="https://source.unsplash.com/360x200?animation+3d"
-                    alt="3d"
-                    className="w-full"
-                  />
-                  <div className="py-6 px-6">
-                    <h3>
-                      <a
-                        href="#"
-                        className="block mb-3 font-semibold text-xl text-primary hover:text-highlight truncate"
-                      >
-                        Belajar 3D Design
-                      </a>
-                    </h3>
-                    <p className="font-medium text-base text-stroke mb-2">
-                      Lorem, ipsum dolor sit amet consectetur adipisicing elit.
-                      Beatae, laborum obcaecati! Numquam.
-                    </p>
-                    <div className="flex justify-end pt-4">
-                      <a
-                        href="#"
-                        className="font-medium text-sm text-white bg-blue-500 py-2 px-4 rounded-lg hover:opacity-60 duration-300"
-                      >
-                        Baca Selengkapnya
-                      </a>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="w-full px-4 lg:w-1/2 xl:w-1/3">
-                <div className="bg-white rounded-xl overflow-hidden shadow-lg mb-10">
-                  <img
-                    src="https://source.unsplash.com/360x200?mechanical+keyboard"
-                    alt="Mechanical Keyboard"
-                    className="w-full"
-                  />
-                  <div className="py-6 px-6">
-                    <h3>
-                      <a
-                        href="#"
-                        className="block mb-3 font-semibold text-xl text-primary hover:text-highlight truncate"
-                      >
-                        Review Keyboard GT-65
-                      </a>
-                    </h3>
-                    <p className="font-medium text-base text-stroke mb-2">
-                      Lorem ipsum, dolor sit amet consectetur adipisicing
-                      elit.asdfasdfasdf
-                    </p>
-                    <div className="flex justify-end pt-4">
-                      <a
-                        href="#"
-                        className="font-medium text-sm text-white bg-blue-500 py-2 px-4 rounded-lg hover:opacity-60 duration-300"
-                      >
-                        Baca Selengkapnya
-                      </a>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div className="mx-auto flex">
-                <p className="flex pt-6 text-2xl text-blue-400">
-                  Selengkapnya
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="28"
-                    height="32"
-                    viewBox="0 0 32 32"
-                    id="arrow"
-                    className="ml-2 mt-1 fill-current"
-                  >
-                    <path d="M4 15a1 1 0 0 0 1 1h19.586l-4.292 4.292a1 1 0 0 0 1.414 1.414l6-6a.99.99 0 0 0 .292-.702V15c0-.13-.026-.26-.078-.382a.99.99 0 0 0-.216-.324l-6-6a1 1 0 0 0-1.414 1.414L24.586 14H5a1 1 0 0 0-1 1z"></path>
-                  </svg>
-                </p>
-              </div>
+            <div className="flex justify-end pt-4">
+              <Link
+                to="/news"
+                className="font-medium text-sm text-blue-500 py-2 px-4 rounded-lg hover:opacity-60 duration-300 flex items-center"
+              >
+                Baca Selengkapnya
+                <i className="fas fa-arrow-right ml-2"></i>
+              </Link>
             </div>
           </div>
         </section>
+
+        <Footer />
       </div>
-      <Footer />
     </>
   );
 };

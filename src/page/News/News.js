@@ -1,65 +1,92 @@
-import React, { useState, useEffect } from "react";
-import { collection, getDocs, query, orderBy, limit } from "firebase/firestore";
-import { db } from "../../config/Firebase"; // Adjust the import path as necessary
+import { collection, getDocs, limit, orderBy, query } from "firebase/firestore";
+import { getDownloadURL, ref } from "firebase/storage";
+import React, { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import Header from "../components/Header";
+import { db, storage } from "../../config/Firebase";
+import ScrollReveal from "scrollreveal";
 import Footer from "../components/Footer";
+import Header from "../components/Header";
 
 const News = () => {
   const [newsData, setNewsData] = useState([]);
   const [popularNews, setPopularNews] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  const fetchNews = useCallback(async () => {
+    try {
+      const newsCollection = collection(db, "news");
+      const newsSnapshot = await getDocs(newsCollection);
+      const newsList = newsSnapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+
+      const newsDataWithImages = await Promise.all(
+        newsList.map(async (newsItem) => {
+          if (newsItem.image) {
+            const imageUrl = await getDownloadURL(
+              ref(storage, `news/${newsItem.image}`)
+            );
+            return { ...newsItem, imageUrl };
+          }
+          return newsItem;
+        })
+      );
+
+      setNewsData(newsDataWithImages);
+
+      const popularNewsQuery = query(
+        newsCollection,
+        orderBy("views", "desc"),
+        limit(5)
+      );
+      const popularNewsSnapshot = await getDocs(popularNewsQuery);
+      const popularNewsList = popularNewsSnapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+
+      setPopularNews(popularNewsList);
+      console.log("Data Berita ", popularNewsList);
+
+      setLoading(false);
+    } catch (error) {
+      console.error("Error fetching news:", error);
+      setLoading(false);
+    }
+  }, []);
+
   useEffect(() => {
-    const fetchNews = async () => {
-      try {
-        const newsCollection = collection(db, "news");
-        const newsSnapshot = await getDocs(newsCollection);
-        const newsList = newsSnapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        }));
-        setNewsData(newsList);
-
-        const popularNewsQuery = query(
-          newsCollection,
-          orderBy("views", "desc"),
-          limit(5)
-        );
-        const popularNewsSnapshot = await getDocs(popularNewsQuery);
-        const popularNewsList = popularNewsSnapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        }));
-        setPopularNews(popularNewsList);
-
-        setLoading(false);
-      } catch (error) {
-        console.error("Error fetching news:", error);
-        setLoading(false);
-      }
-    };
-
     fetchNews();
+  }, [fetchNews]);
+
+  useEffect(() => {
+    ScrollReveal().reveal(".scroll", {
+      delay: 500,
+      duration: 3000,
+      distance: "68px",
+      origin: "bottom",
+    });
+    ScrollReveal({ reset: true });
   }, []);
 
   return (
     <>
       <div>
         <Header />
-        <div className="pt-24 pb-24">
+        <div className="pt-24 pb-24 scroll">
           <div className="w-screen px-4 py-32 items-center bg-saintek bg-cover bg-right flex flex-col justify-center text-center">
             <p className="text-6xl font-bold text-white">Berita Alumni</p>
             <a className="text-white text-xl mt-16 font-medium" href="/">
               Beranda{" "}
               <span className="ml-3 font-medium">
-                {" "}
-                <span className="mr-3 font-medium">></span> News
+                {"/"}
+                <span className="mr-3 font-medium"></span> News
               </span>
             </a>
           </div>
         </div>
-        <section id="about" className="pb-32">
+        <section id="news" className="pb-32 scroll">
           <div className="container mx-auto">
             <div className="flex flex-wrap px-4 mx-auto">
               <div className="w-full flex md:w-3/4 p-6 gap-6 grid grid-cols-1 lg:grid-cols-2">
@@ -73,15 +100,16 @@ const News = () => {
                     >
                       {newsItem.imageUrl && (
                         <img
-                          src={newsItem.image}
+                          src={newsItem.imageUrl}
                           alt={newsItem.title}
                           className="w-full"
+                          style={{ height: "300px" }}
                         />
                       )}
                       <div className="py-6 px-6">
                         <h3>
                           <a
-                            href="#"
+                            href="#s"
                             className="block mb-4 font-semibold text-xl text-primary hover:text-highlight text-ellipsis"
                           >
                             {newsItem.title}

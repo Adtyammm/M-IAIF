@@ -1,8 +1,9 @@
-import React from "react";
+import React, { useEffect } from "react";
 import Header from "../components/Header";
 import alumni from "../../assets/images/image_1_about.png";
 import SliderComponent from "../components/SliderComponent";
 import Slider from "react-slick";
+import ScrollReveal from "scrollreveal";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import SliderGallery from "../components/SliderGallery";
@@ -10,23 +11,32 @@ import { Link } from "react-router-dom";
 import Footer from "../components/Footer";
 
 const About = () => {
+  useEffect(() => {
+    ScrollReveal().reveal(".scroll", {
+      delay: 500,
+      duration: 3000,
+      distance: "68px",
+      origin: "bottom",
+    });
+    ScrollReveal({ reset: true });
+  }, []);
   return (
     <>
       <Header />
-      <div className="pt-24">
+      <div className="pt-24 scroll">
         <div className="w-screen px-4 py-32 items-center bg-saintek bg-cover bg-right flex flex-col justify-center text-center">
           <p className="text-6xl font-bold text-white">Tentang Kami</p>
           <a className="text-white text-xl mt-16 font-medium" href="/">
             Beranda{" "}
             <span className="ml-3 font-medium">
-              {" "}
-              <span className="mr-3 font-medium">></span> Tentang Kami
+              {"/"}
+              <span className="mr-3 font-medium"></span> Tentang Kami
             </span>
           </a>
         </div>
       </div>
       <div>
-        <section id="about" class="pt-12 pb-24">
+        <section id="about" class="pt-12 pb-24 scroll">
           <div className="container mx-auto items-center">
             <img
               src={alumni}

@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
 import { doc, getDoc } from "firebase/firestore";
-import { db } from "../../config/Firebase"; // Adjust the import path as necessary
-import Header from "../components/Header";
+import { getDownloadURL, ref } from "firebase/storage";
+import React, { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
+import { db, storage } from "../../config/Firebase";
 import Footer from "../components/Footer";
+import Header from "../components/Header";
 
 const DataNews = () => {
   const { id } = useParams();
@@ -13,12 +14,20 @@ const DataNews = () => {
   useEffect(() => {
     const fetchNewsItem = async () => {
       try {
-        console.log(id);
         const docRef = doc(db, "news", id);
         const docSnap = await getDoc(docRef);
 
         if (docSnap.exists()) {
-          setNewsItem({ id: docSnap.id, ...docSnap.data() });
+          let newsData = { id: docSnap.id, ...docSnap.data() };
+
+          if (newsData.image) {
+            const imageUrl = await getDownloadURL(
+              ref(storage, `news/${newsData.image}`)
+            );
+            newsData.imageUrl = imageUrl;
+          }
+
+          setNewsItem(newsData);
         } else {
           console.error("No such document!");
         }
@@ -36,34 +45,33 @@ const DataNews = () => {
     <>
       <div>
         <Header />
-        <div className="pt-24 pb-24">
-          <div className="w-screen px-4 py-32 items-center bg-saintek bg-cover bg-right flex flex-col justify-center text-center">
-            <p className="text-6xl font-bold text-white">Detail Berita</p>
-            <a className="text-white text-xl mt-16 font-medium" href="/">
-              Beranda{" "}
-              <span className="ml-3 font-medium">
-                {" "}
-                <span className="mr-3 font-medium">></span> Detail News
-              </span>
+        <div className="pt-24 pb-24 bg-gray-100">
+          <div className="w-screen px-4 py-32 items-center bg-gray-800 bg-cover bg-center flex flex-col justify-center text-center">
+            <p className="text-5xl font-bold text-white">Detail Berita</p>
+            <a className="text-white text-lg mt-4 font-medium" href="/">
+              Beranda <span className="ml-3 font-medium">Detail News</span>
             </a>
           </div>
         </div>
-        <section id="about" className="pb-32">
-          <div className="container mx-auto">
+        <section id="about" className="pb-32 bg-white">
+          <div className="container mx-auto px-4">
             {loading ? (
-              <p>Loading...</p>
+              <p className="text-center text-gray-500">Loading...</p>
             ) : (
               newsItem && (
-                <div className="bg-white rounded-xl overflow-hidden shadow-lg mb-10 p-6">
-                  {newsItem.image && (
+                <div className="w-3/5 mx-auto bg-white rounded-lg shadow-md mb-10 p-6">
+                  {newsItem.imageUrl && (
                     <img
-                      src={newsItem.image}
+                      src={newsItem.imageUrl}
                       alt={newsItem.title}
-                      className="w-full mb-6"
+                      className="w-full mb-6 rounded-lg max-h-100 object-cover mx-auto"
                     />
                   )}
-                  <h1 className="text-3xl font-bold mb-4">{newsItem.title}</h1>
-                  <p className="font-medium text-base text-stroke mb-4">
+
+                  <h1 className="text-3xl font-bold mb-4 text-gray-800">
+                    {newsItem.title}
+                  </h1>
+                  <p className="text-base text-gray-700 leading-relaxed whitespace-pre-line">
                     {newsItem.content}
                   </p>
                 </div>

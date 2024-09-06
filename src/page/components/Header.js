@@ -1,23 +1,23 @@
-import React, {useState, useEffect} from "react";
-import uin from "../../assets/images/logo_uin.png";
+import { collection, getDocs } from "firebase/firestore";
+import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import logo from "../../assets/images/if-logo.png";
-import {auth, db} from "../../config/Firebase";
-import {useNavigate} from "react-router-dom";
-import {collection, getDocs, query, where} from "firebase/firestore";
+import uin from "../../assets/images/logo_uin.png";
+import { auth, db } from "../../config/Firebase";
 
 const Header = () => {
-  const [userUID, setUserUID] = useState();
-  const [userName, setUserName] = useState();
-  const navigate = useNavigate();
+  const [userUID, setUserUID] = useState(null);
+  const [userName, setUserName] = useState(null);
   const [isOpen, setIsOpen] = useState(false);
+  const navigate = useNavigate();
 
   const toggleDropdown = () => {
     setIsOpen(!isOpen);
-  }
+  };
 
   const closeDropdown = () => {
     setIsOpen(false);
-  }
+  };
 
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged((user) => {
@@ -25,20 +25,21 @@ const Header = () => {
         setUserUID(user.uid);
         try {
           const userCollectionRef = collection(db, "users");
-          userCollectionRef
-            .get()
-            .then((doc) => {
-              if (doc.exists) {
-                setUserName(doc.data().name);
-              } else {
-                console.log("Pengguna tidak ditemukan di Firestore");
-              }
+          getDocs(userCollectionRef)
+            .then((querySnapshot) => {
+              querySnapshot.forEach((doc) => {
+                if (doc.exists()) {
+                  setUserName(doc.data().name);
+                } else {
+                  console.log("Pengguna tidak ditemukan di Firestore");
+                }
+              });
             })
             .catch((error) => {
               console.error("Error fetching user data:", error);
             });
         } catch (error) {
-          console.log(error);
+          console.error("Error fetching user collection:", error);
         }
       } else {
         setUserUID(null);
@@ -67,7 +68,6 @@ const Header = () => {
     navmenu.classList.toggle("hidden");
   }
 
-  //navbar-fixed
   const [isFixed, setIsFixed] = useState(false);
 
   useEffect(() => {
@@ -77,29 +77,28 @@ const Header = () => {
       setIsFixed(window.pageYOffset > fixedNav);
     }
 
-    // Add event listener for scroll event
     window.addEventListener("scroll", handleScroll);
 
-    // Cleanup function to remove event listener when component unmounts
     return () => {
       window.removeEventListener("scroll", handleScroll);
     };
   }, []);
 
   return (
-    <header className="navbar-fixed bg-transparent absolute top-0 left-0 w-full flex items-center z-10 justify-evenly">
+    <header
+      className={`navbar-fixed bg-transparent absolute top-0 left-0 w-full flex items-center z-10 justify-evenly ${
+        isFixed ? "fixed-header" : ""
+      }`}
+    >
       <div className="container">
         <div className="flex items-center justify-between relative ">
           <div className="px-4 flex">
             <img src={uin} alt="" className="mt-6 w-12 h-12 " />
             <img src={logo} alt="" className="mt-6 ml-1 mr-2 w-12 h-12" />
 
-            <a
-              href="/home"
-              className=" font-bold text-sm text-primary py-6"
-            >
+            <a href="/home" className=" font-bold text-sm text-primary py-6">
               <p className="text-lg">IAIF UIN SGD Bandung</p>
-            Ikatan Alumni Teknik Informatika UIN SGD Bandung
+              Ikatan Alumni Teknik Informatika UIN SGD Bandung
             </a>
           </div>
           <div className="flex items-center px-4">
@@ -165,7 +164,8 @@ const Header = () => {
                     onClick={toggleDropdown}
                     className="text-base text-primary py-2 mx-8 flex group-hover:text-blue-500"
                   >
-                    {userUID} {userName}
+                    {/* {userUID} {userName} */}
+                    {userName}
                   </button>
                   {isOpen && (
                     <div className="absolute z-10 right-0 mt-2 w-48 bg-white rounded-md shadow-lg">

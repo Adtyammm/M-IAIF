@@ -1,8 +1,8 @@
 import { initializeApp } from "firebase/app";
 import {
+  browserLocalPersistence,
   getAuth,
   setPersistence,
-  browserLocalPersistence,
 } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
