@@ -58,7 +58,7 @@ const About = () => {
             </div>
             <div className="container max-w-screen-lg mx-auto pt-12">
               <div className="flex gap-4 flex-col lg:flex-row">
-                <div className=" w-full h-full px-4 lg:w-2/5 rounded-xl overflow-hidden shadow-xl  pb-8">
+                <div className=" w-full h-full px-4 lg:w-2/5 rounded-xl overflow-hidden shadow-xl border-2 pb-8">
                   <div className="px-6 py-4">
                     <div className="font-bold text-4xl pt-4 pb-8 text-center text-primary">
                       VISI
@@ -71,7 +71,7 @@ const About = () => {
                   </div>
                   <div className="px-6 pt-4 pb-2"></div>
                 </div>
-                <div className="w-full px-4 self-center lg:w-3/5 rounded-xl overflow-hidden shadow-xl bg-white">
+                <div className="w-full px-4 self-center lg:w-3/5 rounded-xl overflow-hidden shadow-xl border-2 bg-white">
                   <div className="px-6 py-4">
                     <div className="font-bold text-4xl mb-8 text-center text-primary">
                       MISI

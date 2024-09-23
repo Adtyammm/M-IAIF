@@ -159,7 +159,7 @@ const Home = () => {
           <section className="section mb-10">
             <div className="container mx-auto">
               <div className="flex flex-col xl:flex-row gap-y-6 justify-between">
-                <div className="headline stast__item flex-1 xl:border-r flex flex-col items-center">
+                <div className="headline stast__item flex-1 xl:border-r xl:border-l flex flex-col items-center">
                   <div className="flex flex-col items-center text-white">
                     <FontAwesomeIcon
                       icon={faUserGraduate}

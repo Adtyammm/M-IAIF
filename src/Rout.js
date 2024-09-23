@@ -15,6 +15,8 @@ import Home from "./page/Home/Home";
 import News from "./page/News/News";
 import Survey from "./page/Survey/Survey";
 import Profile from "./page/User/Profile";
+import EditProfile from "./page/User/EditProfile";
+import Sidebar from "./page/components/Sidebar";
 
 const Rout = () => {
   return (
@@ -30,11 +32,13 @@ const Rout = () => {
         <Route path="/survey" element={<Survey />} />
         <Route path="/about" element={<About />} />
         <Route path="/profile" element={<Profile />} />
+        <Route path="/edit-profile" element={<EditProfile />} />
         <Route path="/header" element={<Header />} />
         <Route path="/datasurvey" element={<DataSurvey />} />
         <Route path="/newpost" element={<NewDiscover />} />
         <Route path="/slider" element={<SliderComponent />} />
         <Route path="/organisasi" element={<DetailStrukturOrganisasi />} />
+        <Route path="/sidebar" element={<Sidebar />} />
       </Routes>
     </>
   );

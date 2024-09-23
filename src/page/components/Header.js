@@ -54,7 +54,7 @@ const Header = () => {
       .signOut()
       .then(() => {
         console.log("Logout berhasil");
-        navigate("/");
+        navigate("/login"); // Arahkan pengguna ke halaman login setelah logout
       })
       .catch((error) => {
         console.error("Gagal logout:", error.message);
@@ -98,7 +98,9 @@ const Header = () => {
 
             <a href="/home" className=" font-bold text-sm text-primary py-6">
               <p className="text-lg">IAIF UIN SGD Bandung</p>
-              Ikatan Alumni Teknik Informatika UIN SGD Bandung
+              <p className="hidden sm:block">
+                Ikatan Alumni Teknik Informatika UIN SGD Bandung
+              </p>
             </a>
           </div>
           <div className="flex items-center px-4">
@@ -159,31 +161,41 @@ const Header = () => {
                     About
                   </a>
                 </li>
-                <li className="relative">
-                  <button
-                    onClick={toggleDropdown}
-                    className="text-base text-primary py-2 mx-8 flex group-hover:text-blue-500"
-                  >
-                    {/* {userUID} {userName} */}
-                    {userName}
-                  </button>
-                  {isOpen && (
-                    <div className="absolute z-10 right-0 mt-2 w-48 bg-white rounded-md shadow-lg">
-                      <a
-                        href="/profile"
-                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                      >
-                        Profile
-                      </a>
-                      <button
-                        onClick={handleLogout}
-                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                      >
-                        Logout
-                      </button>
-                    </div>
-                  )}
-                </li>
+                {userUID ? (
+                  <li className="relative">
+                    <button
+                      onClick={toggleDropdown}
+                      className="text-base text-primary py-2 mx-8 flex group-hover:text-blue-500"
+                    >
+                      {userName}
+                    </button>
+                    {isOpen && (
+                      <div className="absolute z-10 right-0 mt-2 w-48 bg-white rounded-md shadow-lg">
+                        <a
+                          href="/profile"
+                          className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        >
+                          Profile
+                        </a>
+                        <button
+                          onClick={handleLogout}
+                          className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        >
+                          Logout
+                        </button>
+                      </div>
+                    )}
+                  </li>
+                ) : (
+                  <li className="group">
+                    <a
+                      href="/login"
+                      className="text-base font-bold text-primary py-2 mx-8 flex group-hover:text-blue-500 p-5 bg-primary rounded-lg text-white"
+                    >
+                      Login
+                    </a>
+                  </li>
+                )}
               </ul>
             </nav>
           </div>
