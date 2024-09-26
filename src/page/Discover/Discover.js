@@ -1,15 +1,17 @@
 import { faPenToSquare } from "@fortawesome/free-regular-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { collection, getDocs } from "firebase/firestore";
+import { collection, getDocs, orderBy, query, limit } from "firebase/firestore";
 import { getDownloadURL, ref } from "firebase/storage";
 import React, { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { db, storage } from "../../config/Firebase";
+import ScrollReveal from "scrollreveal";
 import Footer from "../components/Footer";
 import Header from "../components/Header";
 
 const Discover = () => {
   const [discoveryData, setNewsData] = useState([]);
+  const [popularPosts, setPopularPosts] = useState([]);
   const [loading, setLoading] = useState(true);
 
   const fetchNews = useCallback(async () => {
@@ -42,9 +44,30 @@ const Discover = () => {
     }
   }, []);
 
+  const fetchPopularPosts = useCallback(async () => {
+    try {
+      const popularPostsQuery = query(
+        collection(db, "discovery"),
+        orderBy("views", "desc"),
+        limit(2)
+      );
+
+      const popularPostsSnapshot = await getDocs(popularPostsQuery);
+      const popularPostsList = popularPostsSnapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+
+      setPopularPosts(popularPostsList);
+    } catch (error) {
+      console.error("Error fetching popular posts:", error);
+    }
+  }, []);
+
   useEffect(() => {
     fetchNews();
-  }, [fetchNews]);
+    fetchPopularPosts();
+  }, [fetchNews, fetchPopularPosts]);
 
   function truncateText(text, maxLength) {
     let words = text.split(" ");
@@ -54,6 +77,16 @@ const Discover = () => {
     }
     return text;
   }
+
+  useEffect(() => {
+    ScrollReveal().reveal(".scroll", {
+      delay: 500,
+      duration: 3000,
+      distance: "68px",
+      origin: "bottom",
+    });
+    ScrollReveal({ reset: true });
+  }, []);
 
   function formatDate(date) {
     return date.toLocaleDateString("id-ID", {
@@ -66,7 +99,7 @@ const Discover = () => {
   return (
     <>
       <Header />
-      <div className="bg-slate-50">
+      <div className="bg-slate-50 scroll">
         <div className="pt-24">
           <div className="w-screen px-4 py-32 items-center bg-saintek bg-cover bg-right flex flex-col justify-center text-center">
             <p className="text-6xl font-bold text-white">Portal Alumni</p>
@@ -79,29 +112,15 @@ const Discover = () => {
             </a>
           </div>
         </div>
-        <div className="container bg-red max-w-screen-lg flex justify-end mx-auto">
-          <div className="mt-20">
-            <a
-              href="/newpost"
-              className=" text-lg text-[#a1a4aa] hover:text-primary "
-            >
-              <FontAwesomeIcon
-                icon={faPenToSquare}
-                style={{ color: "#a1a4aa" }}
-                className="mr-1.5 pb-0.5 text-2xl "
-                size="lg"
-              />
-              Buat Postingan
-            </a>
-          </div>
-        </div>
 
-        <section id="about" className="pb-32">
+        <section id="about" className="pb-32 pt-8">
           <div className="container mx-auto">
             <div className="flex flex-wrap px-4 mx-auto">
               <div className="w-full flex md:w-3/4 p-6 gap-6 grid grid-cols-1 lg:grid-cols-2">
                 {loading ? (
-                  <p>Loading...</p>
+                  <div className="flex justify-end items-center ">
+                    <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-200 border-t-blue-500"></div>
+                  </div>
                 ) : (
                   discoveryData
                     .filter((discoverItem) => discoverItem.status === "accept")
@@ -143,6 +162,34 @@ const Discover = () => {
                     ))
                 )}
               </div>
+
+              {/* Sidebar Postingan Populer */}
+              <aside className="w-full h-full md:w-1/4 bg-white rounded-xl overflow-hidden shadow-lg mb-10 p-4">
+                <h2 className="text-xl font-semibold mb-4">
+                  Postingan Populer
+                </h2>
+                {loading ? (
+                  <div className="flex justify-center items-center mt-3">
+                    <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-200 border-t-blue-500"></div>
+                  </div>
+                ) : (
+                  popularPosts.map((post) => (
+                    <div key={post.id} className="mb-4">
+                      <h3 className="text-lg font-semibold mb-2">
+                        <Link
+                          to={`/discover/${post.id}`}
+                          className="hover:underline hover:text-blue-500 text-primary"
+                        >
+                          {post.title}
+                        </Link>
+                      </h3>
+                      <p className="text-gray-700">
+                        {truncateText(post.content, 6)}
+                      </p>
+                    </div>
+                  ))
+                )}
+              </aside>
             </div>
           </div>
         </section>

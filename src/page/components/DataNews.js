@@ -1,4 +1,4 @@
-import { doc, getDoc } from "firebase/firestore";
+import { doc, getDoc, updateDoc } from "firebase/firestore";
 import { getDownloadURL, ref } from "firebase/storage";
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
@@ -27,7 +27,16 @@ const DataNews = () => {
             newsData.imageUrl = imageUrl;
           }
 
-          setNewsItem(newsData);
+          // Jika tidak ada field views, set default ke 0
+          const currentViews = newsData.views || 0;
+
+          // Perbarui jumlah views
+          await updateDoc(docRef, {
+            views: currentViews + 1,
+          });
+
+          // Set data berita setelah update views
+          setNewsItem({ ...newsData, views: currentViews + 1 });
         } else {
           console.error("No such document!");
         }
@@ -45,11 +54,15 @@ const DataNews = () => {
     <>
       <div>
         <Header />
-        <div className="pt-24 pb-24 bg-gray-100">
-          <div className="w-screen px-4 py-32 items-center bg-gray-800 bg-cover bg-center flex flex-col justify-center text-center">
-            <p className="text-5xl font-bold text-white">Detail Berita</p>
-            <a className="text-white text-lg mt-4 font-medium" href="/">
-              Beranda <span className="ml-3 font-medium">Detail News</span>
+        <div className="pt-24 pb-24 scroll">
+          <div className="w-screen px-4 py-32 items-center bg-saintek bg-cover bg-right flex flex-col justify-center text-center">
+            <p className="text-6xl font-bold text-white">Berita Alumni</p>
+            <a className="text-white text-xl mt-16 font-medium" href="/news">
+              News{" "}
+              <span className="ml-3 font-medium">
+                {"/"}
+                <span className="mr-3 font-medium"></span>Detail News
+              </span>
             </a>
           </div>
         </div>
@@ -73,6 +86,11 @@ const DataNews = () => {
                   </h1>
                   <p className="text-base text-gray-700 leading-relaxed whitespace-pre-line">
                     {newsItem.content}
+                  </p>
+
+                  {/* Menampilkan jumlah views */}
+                  <p className="text-sm text-gray-600 mt-4">
+                    Views: {newsItem.views}
                   </p>
                 </div>
               )

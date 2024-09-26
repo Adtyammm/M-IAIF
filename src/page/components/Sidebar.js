@@ -197,7 +197,7 @@ const Sidebar = () => {
               {isOpen && (
                 <div className="ml-4 z-10 right-0 mt-2 w-42 bg-gray-700 rounded-md shadow-lg ">
                   <a
-                    href="#"
+                    href="/my-discover"
                     className="block px-4 py-2 text-md text-white hover:bg-gray-800"
                   >
                     Artikel Saya

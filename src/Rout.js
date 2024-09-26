@@ -17,6 +17,7 @@ import Survey from "./page/Survey/Survey";
 import Profile from "./page/User/Profile";
 import EditProfile from "./page/User/EditProfile";
 import Sidebar from "./page/components/Sidebar";
+import MyDiscover from "./page/Discover/MyDiscover";
 
 const Rout = () => {
   return (
@@ -28,6 +29,7 @@ const Rout = () => {
         <Route path="/news" element={<News />} />
         <Route path="/news/:id" element={<DataNews />} />
         <Route path="/discover" element={<Discover />} />
+        <Route path="/my-discover" element={<MyDiscover />} />
         <Route path="/discover/:id" element={<DetailDiscover />} />
         <Route path="/survey" element={<Survey />} />
         <Route path="/about" element={<About />} />

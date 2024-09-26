@@ -1,7 +1,7 @@
 import { addDoc, collection, doc, updateDoc } from "firebase/firestore";
 import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
-import { useState } from "react";
-import { db, storage } from "../../config/Firebase";
+import { useState, useEffect } from "react";
+import { auth, db, storage } from "../../config/Firebase";
 import Footer from "../components/Footer";
 import Header from "../components/Header";
 import Sidebar from "../components/Sidebar";
@@ -15,7 +15,18 @@ const NewDiscover = () => {
   const [loading, setLoading] = useState(false);
   const [imagePreview, setImagePreview] = useState(null);
   const [secondImagePreview, setSecondImagePreview] = useState(null);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [modalAnimation, setModalAnimation] = useState(false);
   const [, setCreatedAt] = useState(null);
+
+  useEffect(() => {
+    // Trigger animation after modal becomes visible
+    if (modalVisible) {
+      setTimeout(() => setModalAnimation(true), 10); // Small delay to trigger CSS transition
+    } else {
+      setModalAnimation(false);
+    }
+  }, [modalVisible]);
 
   const handleImageChange = (e) => {
     if (e.target.files[0]) {
@@ -46,7 +57,16 @@ const NewDiscover = () => {
     const timestamp = new Date();
     setCreatedAt(timestamp);
 
+    const user = auth.currentUser;
+    if (!user) {
+      alert("Pengguna tidak terautentikasi. Harap login terlebih dahulu.");
+      setLoading(false);
+      return;
+    }
+    const userId = user.uid;
+
     try {
+      // Tambahkan field views dengan nilai 0
       const docRef = await addDoc(collection(db, "discovery"), {
         title,
         content,
@@ -55,6 +75,8 @@ const NewDiscover = () => {
         secondImageUrl: "",
         createdAt: timestamp,
         status: "pending",
+        authorId: userId,
+        views: 0, // Set views to 0 initially
       });
 
       if (image) {
@@ -91,14 +113,13 @@ const NewDiscover = () => {
       setSecondImagePreview(null);
       setLoading(false);
 
-      alert("Postingan berhasil dibuat!");
+      setModalVisible(true);
     } catch (error) {
       console.error("Error creating post:", error.message);
       setLoading(false);
       alert("Terjadi kesalahan saat membuat postingan.");
     }
   };
-
   return (
     <>
       <Sidebar />
@@ -194,10 +215,33 @@ const NewDiscover = () => {
                   </div>
                   <button
                     type="submit"
-                    className="w-full bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-150 ease-in-out"
+                    className="w-full bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-150 ease-in-out flex justify-center items-center"
                     disabled={loading}
                   >
-                    {loading ? "Menyimpan..." : "Simpan Postingan"}
+                    {loading ? (
+                      <svg
+                        className="animate-spin h-5 w-5 text-white mr-2"
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                      >
+                        <circle
+                          className="opacity-25"
+                          cx="12"
+                          cy="12"
+                          r="10"
+                          stroke="currentColor"
+                          strokeWidth="4"
+                        ></circle>
+                        <path
+                          className="opacity-75"
+                          fill="currentColor"
+                          d="M4 12a8 8 0 018-8v8z"
+                        ></path>
+                      </svg>
+                    ) : (
+                      "Upload Postingan"
+                    )}
                   </button>
                 </form>
                 <div className="w-full lg:w-1/2">
@@ -231,6 +275,48 @@ const NewDiscover = () => {
           </div>
         </div>
       </div>
+
+      {modalVisible && (
+        <div
+          className={`fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center transition-opacity duration-300 ${
+            modalAnimation ? "opacity-100" : "opacity-0"
+          }`}
+        >
+          <div
+            className={`bg-white p-6 rounded-lg shadow-lg transform transition-transform duration-300 ${
+              modalAnimation ? "scale-100" : "scale-95"
+            }`}
+          >
+            <svg
+              className="checkmark mb-4"
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 52 52"
+            >
+              <circle
+                className="checkmark__circle"
+                cx="26"
+                cy="26"
+                r="25"
+                fill="none"
+              />
+              <path
+                className="checkmark__check"
+                fill="none"
+                d="M14 27l7 7 16-16"
+              />
+            </svg>
+            <h2 className="text-2xl font-semibold text-center text-gray-800 mb-2">
+              Postingan Berhasil Dibuat!
+            </h2>
+            <button
+              onClick={() => setModalVisible(false)}
+              className="mt-4 w-full bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700"
+            >
+              Tutup
+            </button>
+          </div>
+        </div>
+      )}
     </>
   );
 };

@@ -14,6 +14,7 @@ const News = () => {
 
   const fetchNews = useCallback(async () => {
     try {
+      // Mengambil semua berita
       const newsCollection = collection(db, "news");
       const newsSnapshot = await getDocs(newsCollection);
       const newsList = newsSnapshot.docs.map((doc) => ({
@@ -21,6 +22,7 @@ const News = () => {
         ...doc.data(),
       }));
 
+      // Mengambil URL gambar berita jika ada
       const newsDataWithImages = await Promise.all(
         newsList.map(async (newsItem) => {
           if (newsItem.image) {
@@ -35,11 +37,13 @@ const News = () => {
 
       setNewsData(newsDataWithImages);
 
+      // Query untuk berita populer berdasarkan jumlah views
       const popularNewsQuery = query(
         newsCollection,
-        orderBy("views", "desc"),
-        limit(5)
+        orderBy("views", "desc"), // Mengurutkan berdasarkan views
+        limit(2) // Membatasi hanya 2 berita populer
       );
+
       const popularNewsSnapshot = await getDocs(popularNewsQuery);
       const popularNewsList = popularNewsSnapshot.docs.map((doc) => ({
         id: doc.id,
@@ -47,7 +51,7 @@ const News = () => {
       }));
 
       setPopularNews(popularNewsList);
-      console.log("Data Berita ", popularNewsList);
+      console.log("Data Berita Populer ", popularNewsList);
 
       setLoading(false);
     } catch (error) {
@@ -91,12 +95,14 @@ const News = () => {
             <div className="flex flex-wrap px-4 mx-auto">
               <div className="w-full flex md:w-3/4 p-6 gap-6 grid grid-cols-1 lg:grid-cols-2">
                 {loading ? (
-                  <p>Loading...</p>
+                  <div className="flex justify-end items-center ">
+                    <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-200 border-t-blue-500"></div>
+                  </div>
                 ) : (
                   newsData.map((newsItem) => (
                     <div
                       key={newsItem.id}
-                      className="bg-white rounded-xl overflow-hidden shadow-lg mb-10"
+                      className="bg-white rounded-xl overflow-hidden shadow-xl mb-10"
                     >
                       {newsItem.imageUrl && (
                         <img
@@ -131,18 +137,26 @@ const News = () => {
                   ))
                 )}
               </div>
-              <aside className="w-full h-full md:w-1/4 bg-white rounded-xl overflow-hidden shadow-lg mb-10 p-4">
+              <aside className="w-full h-full md:w-1/4 bg-white rounded-xl overflow-hidden shadow-xl mb-10 pt-4 pl-6">
                 <h2 className="text-xl font-semibold mb-4">Berita Populer</h2>
                 {loading ? (
-                  <p>Loading...</p>
+                  <div className="flex justify-center items-center mt-2">
+                    <div className="animate-spin rounded-full h-8 w-8 border-4 border-blue-200 border-t-blue-500"></div>
+                  </div>
                 ) : (
                   popularNews.map((newsItem) => (
                     <div key={newsItem.id} className="mb-4">
                       <h3 className="text-lg font-semibold mb-2">
-                        {newsItem.title}
+                        {/* Link to detail page of popular news */}
+                        <Link
+                          to={`/news/${newsItem.id}`}
+                          className="hover:underline hover:text-blue-400 text-primary"
+                        >
+                          {newsItem.title}
+                        </Link>
                       </h3>
                       <p className="text-gray-700">
-                        {newsItem.content.split(" ").slice(0, 5).join(" ")}
+                        {newsItem.content.split(" ").slice(0, 5).join(" ")}...
                       </p>
                     </div>
                   ))
