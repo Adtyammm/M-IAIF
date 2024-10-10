@@ -37,11 +37,10 @@ const News = () => {
 
       setNewsData(newsDataWithImages);
 
-      // Query untuk berita populer berdasarkan jumlah views
       const popularNewsQuery = query(
         newsCollection,
-        orderBy("views", "desc"), // Mengurutkan berdasarkan views
-        limit(2) // Membatasi hanya 2 berita populer
+        orderBy("views", "desc"),
+        limit(2)
       );
 
       const popularNewsSnapshot = await getDocs(popularNewsQuery);

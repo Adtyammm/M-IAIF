@@ -11,6 +11,7 @@ import Header from "../components/Header";
 
 const Discover = () => {
   const [discoveryData, setNewsData] = useState([]);
+  
   const [popularPosts, setPopularPosts] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -138,17 +139,17 @@ const Discover = () => {
                           />
                         )}
                         <div className="py-6 px-6">
+                          <p className="font-medium text-xl text-stroke mb-4 truncate">
+                            {truncateText(discoverItem.content, 25)}
+                          </p>
                           <h3>
                             <a
                               href="#s"
-                              className="block mb-4 font-semibold text-xl text-primary hover:text-highlight text-ellipsis"
+                              className="block mb-4 font-semibold text-md text-primary hover:text-highlight text-ellipsis"
                             >
                               {formatDate(discoverItem.createdAt)}
                             </a>
                           </h3>
-                          <p className="font-medium text-base text-stroke mb-1 truncate">
-                            {truncateText(discoverItem.content, 25)}
-                          </p>
                           <div className="flex justify-end pt-3">
                             <Link
                               to={`/discover/${discoverItem.id}`}

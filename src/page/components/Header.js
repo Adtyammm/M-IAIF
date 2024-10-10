@@ -15,31 +15,23 @@ const Header = () => {
     setIsOpen(!isOpen);
   };
 
-  const closeDropdown = () => {
-    setIsOpen(false);
-  };
-
   useEffect(() => {
-    const unsubscribe = auth.onAuthStateChanged((user) => {
+    const unsubscribe = auth.onAuthStateChanged(async (user) => {
       if (user) {
         setUserUID(user.uid);
         try {
           const userCollectionRef = collection(db, "users");
-          getDocs(userCollectionRef)
-            .then((querySnapshot) => {
-              querySnapshot.forEach((doc) => {
-                if (doc.exists()) {
-                  setUserName(doc.data().name);
-                } else {
-                  console.log("Pengguna tidak ditemukan di Firestore");
-                }
-              });
-            })
-            .catch((error) => {
-              console.error("Error fetching user data:", error);
-            });
+          const querySnapshot = await getDocs(userCollectionRef);
+          const userData = querySnapshot.docs.find(
+            (doc) => doc.data().uid === user.uid
+          );
+          if (userData) {
+            setUserName(userData.data().name);
+          } else {
+            console.log("Pengguna tidak ditemukan di Firestore");
+          }
         } catch (error) {
-          console.error("Error fetching user collection:", error);
+          console.error("Error fetching user data:", error);
         }
       } else {
         setUserUID(null);
@@ -118,7 +110,7 @@ const Header = () => {
 
             <nav
               id="nav-menu"
-              className="hidden absolute py-5  shadow-lg rounded-lg max-w-[140px] w-full right-2 top-full lg:block lg:static lg:max-w-full lg:shadow-none lg:rounded-none"
+              className="hidden absolute py-5 shadow-lg rounded-lg max-w-[140px] w-full right-1  top-full lg:block lg:static lg:max-w-full lg:shadow-none lg:rounded-none top-12 "
             >
               <ul className="block lg:flex">
                 <li className="group">
@@ -132,7 +124,7 @@ const Header = () => {
                 <li className="group">
                   <a
                     href="/news"
-                    className="text-base font-bold text-primary py-2 mx-8 flex group-hover:text-blue-500"
+                    className="text-base font-bold  text-primary py-2 mx-8 flex group-hover:text-blue-500"
                   >
                     News
                   </a>
@@ -140,7 +132,7 @@ const Header = () => {
                 <li className="group">
                   <a
                     href="/discover"
-                    className="text-base font-bold text-primary py-2 mx-8 flex group-hover:text-blue-500"
+                    className="text-base font-bold  text-primary py-2 mx-8 flex group-hover:text-blue-500"
                   >
                     Discover
                   </a>
@@ -148,7 +140,7 @@ const Header = () => {
                 <li className="group">
                   <a
                     href="/survey"
-                    className="text-base font-bold text-primary py-2 mx-8 flex group-hover:text-blue-500"
+                    className="text-base font-bold  text-primary py-2 mx-8 flex group-hover:text-blue-500"
                   >
                     Survey
                   </a>
@@ -156,7 +148,7 @@ const Header = () => {
                 <li className="group">
                   <a
                     href="/about"
-                    className="text-base font-bold text-primary py-2 mx-8 flex group-hover:text-blue-500"
+                    className="text-base font-bold  text-primary py-2 mx-8 flex group-hover:text-blue-500"
                   >
                     About
                   </a>
@@ -190,7 +182,7 @@ const Header = () => {
                   <li className="group">
                     <a
                       href="/login"
-                      className="text-base font-bold text-primary py-2 mx-8 flex group-hover:text-blue-500 p-5 bg-primary rounded-lg text-white"
+                      className="text-base font-bold py-2 mx-8 flex group-hover:text-blue-500 p-5 bg-primary rounded-lg text-white"
                     >
                       Login
                     </a>

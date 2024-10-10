@@ -13,6 +13,7 @@ const Profile = () => {
   const [yearClass, setYearClass] = useState(null);
   const [graduated, setGraduated] = useState(null);
   const [gender, setGender] = useState(null);
+  const [avatar, setAvatar] = useState(null); // State untuk menyimpan URL avatar
 
   const [isModalOpen, setIsModalOpen] = useState(false); // Control modal visibility
   const [isAnimating, setIsAnimating] = useState(false); // Control animation state
@@ -26,8 +27,8 @@ const Profile = () => {
           getDocs(userCollectionRef)
             .then((querySnapshot) => {
               querySnapshot.forEach((doc) => {
-                if (doc.exists()) {
-                  const data = doc.data();
+                const data = doc.data();
+                if (data.uid === user.uid) {
                   setUserName(data.name);
                   setNim(data.nim);
                   setEmail(data.email);
@@ -35,8 +36,7 @@ const Profile = () => {
                   setYearClass(data.yearClass);
                   setGraduated(data.graduated);
                   setGender(data.gender);
-                } else {
-                  console.log("Pengguna tidak ditemukan di Firestore");
+                  setAvatar(data.avatar); // Setel URL avatar dari Firestore
                 }
               });
             })
@@ -76,7 +76,7 @@ const Profile = () => {
                   <div className="flex justify-center mb-4">
                     <img
                       src={
-                        userData.avatar ||
+                        avatar ||
                         "https://img.freepik.com/free-vector/illustration-businessman_53876-5856.jpg"
                       }
                       alt="avatar"

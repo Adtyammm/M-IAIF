@@ -66,7 +66,6 @@ const ModalEditDiscover = ({ show, handleClose, discoverData }) => {
         closingContent: formData.closingContent,
         imageUrl: formData.imageUrl,
         secondImageUrl: formData.secondImageUrl,
-        status: formData.status,
       });
 
       setAlertMessage("Berhasil edit Discover Data");
@@ -85,7 +84,6 @@ const ModalEditDiscover = ({ show, handleClose, discoverData }) => {
       closingContent: discoverData.closingContent || "",
       imageUrl: discoverData.imageUrl || "",
       secondImageUrl: discoverData.secondImageUrl || "",
-      status: discoverData.status || "",
     });
   }, [discoverData]);
 
@@ -185,22 +183,6 @@ const ModalEditDiscover = ({ show, handleClose, discoverData }) => {
                   className="mt-1 block w-full p-2 border border-gray-300 rounded-md"
                   rows={5}
                 />
-              </div>
-
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700">
-                  Status
-                </label>
-                <select
-                  name="status"
-                  value={formData.status}
-                  onChange={handleChange}
-                  className="mt-1 block w-full p-2 border border-gray-300 rounded-md"
-                >
-                  <option value="pending">Pending</option>
-                  <option value="accept">Accept</option>
-                  <option value="rejected">Rejected</option>
-                </select>
               </div>
             </form>
 

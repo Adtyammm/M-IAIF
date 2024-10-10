@@ -5,6 +5,8 @@ import { useParams } from "react-router-dom";
 import { db, storage } from "../../config/Firebase";
 import Footer from "../components/Footer";
 import Header from "../components/Header";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faEye } from "@fortawesome/free-solid-svg-icons";
 
 const DataNews = () => {
   const { id } = useParams();
@@ -27,15 +29,12 @@ const DataNews = () => {
             newsData.imageUrl = imageUrl;
           }
 
-          // Jika tidak ada field views, set default ke 0
           const currentViews = newsData.views || 0;
 
-          // Perbarui jumlah views
           await updateDoc(docRef, {
             views: currentViews + 1,
           });
 
-          // Set data berita setelah update views
           setNewsItem({ ...newsData, views: currentViews + 1 });
         } else {
           console.error("No such document!");
@@ -84,14 +83,15 @@ const DataNews = () => {
                   <h1 className="text-3xl font-bold mb-4 text-gray-800">
                     {newsItem.title}
                   </h1>
+                  <p className="text-sm text-gray-600 mt-4 flex items-center">
+                    <FontAwesomeIcon icon={faEye} className="mr-2" />
+                    {newsItem.views}
+                  </p>
                   <p className="text-base text-gray-700 leading-relaxed whitespace-pre-line">
                     {newsItem.content}
                   </p>
 
-                  {/* Menampilkan jumlah views */}
-                  <p className="text-sm text-gray-600 mt-4">
-                    Views: {newsItem.views}
-                  </p>
+                  {/* Menampilkan jumlah views dengan ikon mata */}
                 </div>
               )
             )}

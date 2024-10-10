@@ -1,12 +1,33 @@
+import React, { useEffect, useState } from "react";
 import Slider from "react-slick";
+import { collection, getDocs } from "firebase/firestore";
+import { db } from "../../config/Firebase"; // Pastikan konfigurasi Firebase Anda benar
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
-import selamat from "../../assets/images/gallery/Dok_Ucapan Selamat Mubes IAIF 2022-2025.jpg";
-import mubes from "../../assets/images/gallery/Dok_Mubes IAIF 2022-2025.jpg";
-import rapat from "../../assets/images/gallery/Dok_Rapat Koordinasi Pengurus IAIF.jpg";
-import lantik from "../../assets/images/gallery/Dok_Pelantikan dan Raker_2.jpg";
 
 const SliderGallery = () => {
+  const [galleryData, setGalleryData] = useState([]); // State untuk menyimpan data gallery
+
+  // Fungsi untuk mengambil data dari Firestore
+  useEffect(() => {
+    const fetchGalleryData = async () => {
+      const galleryCollectionRef = collection(db, "gallery");
+      try {
+        const querySnapshot = await getDocs(galleryCollectionRef);
+        const data = querySnapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+        setGalleryData(data);
+      } catch (error) {
+        console.error("Error fetching gallery data from Firestore:", error);
+      }
+    };
+
+    fetchGalleryData();
+  }, []);
+
+  // Komponen untuk panah sebelumnya (prev)
   function PrevArrow(props) {
     const { onClick } = props;
     return (
@@ -16,7 +37,7 @@ const SliderGallery = () => {
           className="h-6 w-6"
           fill="none"
           viewBox="0 0 24 24"
-          stroke="navy" // Mengatur warna panah menjadi navy
+          stroke="navy"
         >
           <path
             strokeLinecap="round"
@@ -39,7 +60,7 @@ const SliderGallery = () => {
           className="h-6 w-6"
           fill="none"
           viewBox="0 0 24 24"
-          stroke="navy" // Mengatur warna panah menjadi navy
+          stroke="navy"
         >
           <path
             strokeLinecap="round"
@@ -58,8 +79,8 @@ const SliderGallery = () => {
     speed: 500,
     slidesToShow: 3,
     slidesToScroll: 1,
-    prevArrow: <PrevArrow />, // Gunakan komponen panah sebelumnya yang sudah dibuat
-    nextArrow: <NextArrow />, // Gunakan komponen panah berikutnya yang sudah dibuat
+    prevArrow: <PrevArrow />,
+    nextArrow: <NextArrow />,
     initialSlide: 0,
     responsive: [
       {
@@ -85,44 +106,21 @@ const SliderGallery = () => {
           slidesToScroll: 1,
         },
       },
-      // You can unslick at a given breakpoint now by adding:
-      // settings: "unslick"
-      // instead of a settings object
     ],
   };
-
-  const data = [
-    {
-      nama: "Ucapam Selamat Mubes IAIF 2022-2025",
-      img: selamat,
-      ket: "Terpilihnya Aldy Rialdy Atmadja sebagai ketua IAIF periode 2022 - 2025",
-    },
-    {
-      nama: "Pelantikan dan Raker",
-      img: lantik,
-      ket: "Di lantiknya Aldy Rialdy Atmadja sebagai ketua IAIF periode 2022 - 2025",
-    },
-    {
-      nama: "Rapat Koordinasi",
-      img: rapat,
-      ket: "Rapat Koordinasi Pengurus IAIF",
-    },
-    {
-      nama: "Mubes IAIF 2022-2025",
-      img: mubes,
-      ket: "Musyawarah Besar IAIF",
-    },
-  ];
 
   return (
     <div className="w-full mx-auto pt-12 ">
       <div className="">
         <Slider {...settings}>
-          {data.map((d) => (
-            <div className="bg-white rounded-xl overflow-hidden shadow-lg mb-10">
+          {galleryData.map((item) => (
+            <div
+              key={item.id}
+              className="bg-white rounded-xl overflow-hidden shadow-lg mb-10"
+            >
               <img
-                src={d.img}
-                alt="alt"
+                src={item.imageUrl} // Menggunakan URL gambar dari Firestore
+                alt={item.title}
                 className="aspect-[16/9] object-cover object-top"
               />
               <div className="py-6 px-6">
@@ -131,10 +129,10 @@ const SliderGallery = () => {
                     href="#"
                     className="block mb-3 font-semibold text-xl text-primary hover:text-blue-600 truncate text-center"
                   >
-                    {d.nama}
+                    {item.title}
                   </a>
                 </h3>
-                <p className="text-center mt-4 mb-4">{d.ket}</p>
+                <p className="text-center mt-4 mb-4">{item.date}</p>
               </div>
             </div>
           ))}

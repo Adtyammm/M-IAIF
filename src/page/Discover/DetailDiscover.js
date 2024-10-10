@@ -1,15 +1,27 @@
-import { doc, getDoc, updateDoc, increment } from "firebase/firestore"; // Import increment and updateDoc
+import {
+  collection,
+  query,
+  where,
+  doc,
+  getDoc,
+  getDocs,
+  updateDoc,
+  increment,
+} from "firebase/firestore"; // Import increment and updateDoc
 import { getDownloadURL, ref } from "firebase/storage";
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { db, storage } from "../../config/Firebase";
 import Footer from "../components/Footer";
 import Header from "../components/Header";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faEye } from "@fortawesome/free-solid-svg-icons";
 
 const DetailDiscover = () => {
   const { id } = useParams();
   const [discoveryItem, setDiscoveryItem] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [authorName, setAuthorName] = useState("");
 
   useEffect(() => {
     const fetchDiscoveryItem = async () => {
@@ -38,6 +50,26 @@ const DetailDiscover = () => {
 
           if (discoveryData.createdAt) {
             discoveryData.createdAt = discoveryData.createdAt.toDate();
+          }
+
+          if (discoveryData.authorId) {
+            const usersRef = collection(db, "users");
+            const q = query(
+              usersRef,
+              where("uid", "==", discoveryData.authorId)
+            ); // Menggunakan authorID untuk mencari berdasarkan uid
+            const querySnapshot = await getDocs(q);
+
+            if (!querySnapshot.empty) {
+              querySnapshot.forEach((doc) => {
+                const userData = doc.data();
+                setAuthorName(userData.name); // Set nama user ke state authorName
+              });
+            } else {
+              console.error(
+                `No user found with UID: ${discoveryData.authorID}`
+              );
+            }
           }
 
           setDiscoveryItem(discoveryData);
@@ -97,11 +129,16 @@ const DetailDiscover = () => {
                   />
                 )}
 
-                <h1 className="text-3xl font-bold mb-4 text-gray-800">
+                <h1 className="text-3xl font-bold mb-2 text-gray-800">
                   {discoveryItem.title}
                 </h1>
-                <p className="text-gray-500 mb-4">
+                <p className="text-gray-500 mb-1s">
+                  {authorName && <span>By : {authorName}</span>} |{" "}
                   {formatDate(discoveryItem.createdAt)}
+                </p>
+                <p className="text-sm text-gray-600 mt-2 mb-4 flex items-center">
+                  <FontAwesomeIcon icon={faEye} className="mr-2" />
+                  {discoveryItem.views}
                 </p>
                 <p className="text-base text-gray-700 leading-relaxed whitespace-pre-line mb-4">
                   {discoveryItem.content}
@@ -118,17 +155,13 @@ const DetailDiscover = () => {
                 <p className="text-base text-gray-700 leading-relaxed whitespace-pre-line">
                   {discoveryItem.closingContent}
                 </p>
-
-                {/* Display views */}
-                <p className="text-gray-500 mt-4">
-                  Views {discoveryItem.views}
-                </p>
               </div>
             ) : (
               <p className="text-center text-gray-500">
                 Document does not exist
               </p>
             )}
+            z
           </div>
         </section>
         <Footer />

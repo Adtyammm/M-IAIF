@@ -108,7 +108,7 @@ const Sidebar = () => {
               <a href="" className="flex ms-2 md:me-24">
                 <img src={uin} alt="" className="mt-2 w-12 h-12 " />
                 <img src={logo} alt="" className="mt-2 ml-1 mr-2 w-12 h-12" />
-                <span className="self-center ml-2 text-md font-semibold sm:text-xl whitespace-nowrap dark:text-white">
+                <span className="hidden self-center ml-2 text-md font-semibold sm:text-xl whitespace-nowrap dark:text-white md:block ">
                   Ikatan Alumni Teknik Informatika UIN SGD Bandung
                 </span>
               </a>

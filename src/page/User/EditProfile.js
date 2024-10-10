@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { doc, collection, getDocs, updateDoc } from "firebase/firestore";
-import { auth, db } from "../../config/Firebase"; // Pastikan Firebase sudah dikonfigurasi dengan benar
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { auth, db, storage } from "../../config/Firebase"; // Pastikan Firebase sudah dikonfigurasi dengan benar
 import Sidebar from "../components/Sidebar.js";
 
 const EditProfile = ({ closeModal }) => {
@@ -11,7 +12,10 @@ const EditProfile = ({ closeModal }) => {
   const [phone, setPhone] = useState("");
   const [yearClass, setYearClass] = useState("");
   const [graduated, setGraduated] = useState("");
-  const [gender, setGender] = useState("");
+  const [gender, setGender] = useState(""); // State untuk pilihan jenis kelamin
+  const [avatarFile, setAvatarFile] = useState(null); // State untuk file foto profil
+  const [loading, setLoading] = useState(false); // State untuk loading
+  const [isModalVisible, setIsModalVisible] = useState(false); // State untuk visibilitas modal sukses
 
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged((user) => {
@@ -50,6 +54,12 @@ const EditProfile = ({ closeModal }) => {
     return () => unsubscribe();
   }, []);
 
+  const handleFileChange = (e) => {
+    if (e.target.files[0]) {
+      setAvatarFile(e.target.files[0]);
+    }
+  };
+
   const handleUpdateProfile = async (e) => {
     e.preventDefault();
 
@@ -58,7 +68,21 @@ const EditProfile = ({ closeModal }) => {
       return;
     }
 
+    setLoading(true); // Set loading to true
+
     try {
+      let avatarURL = null;
+
+      // Jika ada file avatar yang diunggah, upload ke Firebase Storage
+      if (avatarFile) {
+        const avatarRef = ref(
+          storage,
+          `avatars/${userData}/${avatarFile.name}`
+        );
+        await uploadBytes(avatarRef, avatarFile);
+        avatarURL = await getDownloadURL(avatarRef); // Dapatkan URL dari file yang diunggah
+      }
+
       const userCollectionRef = collection(db, "users");
       const querySnapshot = await getDocs(userCollectionRef);
 
@@ -83,16 +107,24 @@ const EditProfile = ({ closeModal }) => {
           yearClass: yearClass,
           graduated: graduated,
           gender: gender,
+          ...(avatarURL && { avatar: avatarURL }), // Hanya tambahkan avatar jika URL tersedia
         });
 
-        alert("Profile updated successfully!");
+        setLoading(false); // Set loading to false after update
+        setIsModalVisible(true); // Show modal success
       } else {
         console.log("User document not found.");
+        setLoading(false); // Make sure loading is disabled on failure
       }
     } catch (error) {
       console.error("Error updating profile:", error.message);
+      setLoading(false); // Set loading to false if error
     }
-    closeModal();
+  };
+
+  const closeSuccessModal = () => {
+    setIsModalVisible(false); // Close the success modal
+    closeModal(); // Call the prop to close the entire EditProfile component/modal
   };
 
   return (
@@ -134,21 +166,97 @@ const EditProfile = ({ closeModal }) => {
                 value={graduated}
                 onChange={setGraduated}
               />
-              <ProfileInput
-                label="Jenis Kelamin"
-                value={gender}
-                onChange={setGender}
-              />
+              {/* Input untuk foto profil */}
+              <div className="flex flex-col">
+                <label className="text-gray-600 font-medium mb-2">
+                  Foto Profil
+                </label>
+                <input
+                  type="file"
+                  className="p-2 bg-gray-50 border border-gray-300 rounded-lg shadow-sm text-lg font-semibold text-gray-800"
+                  onChange={handleFileChange}
+                />
+              </div>
+              {/* Ganti input untuk jenis kelamin dengan elemen select */}
+              <div className="flex flex-col">
+                <label className="text-gray-600 font-medium mb-2">
+                  Jenis Kelamin
+                </label>
+                <select
+                  className="p-2 bg-gray-50 border border-gray-300 rounded-lg shadow-sm text-lg font-semibold text-gray-800"
+                  value={gender}
+                  onChange={(e) => setGender(e.target.value)}
+                >
+                  <option value="">Pilih Jenis Kelamin</option>
+                  <option value="Laki-laki">Laki-laki</option>
+                  <option value="Perempuan">Perempuan</option>
+                </select>
+              </div>
+
               <button
                 type="submit"
-                className="bg-blue-500 text-white py-3 px-6 rounded-lg hover:bg-blue-600 transition duration-300"
+                className="bg-blue-500 text-white py-3 px-6 rounded-lg hover:bg-blue-600 transition duration-300 flex justify-center items-center"
               >
-                Update Profile
+                {loading ? (
+                  <svg
+                    className="animate-spin h-5 w-5 mr-3 text-white"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    ></circle>
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+                    ></path>
+                  </svg>
+                ) : (
+                  "Update Profile"
+                )}
               </button>
             </form>
           </div>
         </div>
       </div>
+
+      {/* Modal Success */}
+      {isModalVisible && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="bg-white p-6 rounded-lg shadow-lg transition-transform transform scale-100 ease-out duration-300">
+            <div className="flex items-center justify-center">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="h-12 w-12 text-green-500"
+              >
+                <path className="checkmark" d="M9 12l2 2 4-4" />
+              </svg>
+            </div>
+            <h2 className="text-xl font-semibold text-center mt-4">
+              Profile updated successfully!
+            </h2>
+            <button
+              className="mt-6 bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600 transition duration-300 w-full"
+              onClick={closeSuccessModal}
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
