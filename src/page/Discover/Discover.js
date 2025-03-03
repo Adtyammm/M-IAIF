@@ -1,5 +1,3 @@
-import { faPenToSquare } from "@fortawesome/free-regular-svg-icons";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { collection, getDocs, orderBy, query, limit } from "firebase/firestore";
 import { getDownloadURL, ref } from "firebase/storage";
 import React, { useCallback, useEffect, useState } from "react";
@@ -10,8 +8,8 @@ import Footer from "../components/Footer";
 import Header from "../components/Header";
 
 const Discover = () => {
-  const [discoveryData, setNewsData] = useState([]);
-  
+  const [discoveryData, setDiscoveryData] = useState([]);
+
   const [popularPosts, setPopularPosts] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -37,7 +35,7 @@ const Discover = () => {
         })
       );
 
-      setNewsData(discoveryDataWithImages);
+      setDiscoveryData(discoveryDataWithImages);
       setLoading(false);
     } catch (error) {
       console.error("Error fetching discovery:", error);
@@ -139,13 +137,16 @@ const Discover = () => {
                           />
                         )}
                         <div className="py-6 px-6">
-                          <p className="font-medium text-xl text-stroke mb-4 truncate">
-                            {truncateText(discoverItem.content, 25)}
+                          <p className="block mb-4 font-semibold text-xl text-blue-500 hover:text-highlight text-ellipsis">
+                            {discoverItem.title}
+                          </p>
+                          <p className="font-medium text-base text-stroke mb-1 truncate">
+                            {discoverItem.content}
                           </p>
                           <h3>
                             <a
                               href="#s"
-                              className="block mb-4 font-semibold text-md text-primary hover:text-highlight text-ellipsis"
+                              className="block mb-1 font-semibold text-md text-primary hover:text-highlight text-ellipsis"
                             >
                               {formatDate(discoverItem.createdAt)}
                             </a>

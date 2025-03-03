@@ -1,5 +1,4 @@
 import {
-  faInfo,
   faPenToSquare,
   faTrash,
 } from "@fortawesome/free-solid-svg-icons";
@@ -11,7 +10,6 @@ import {
   getDocs,
   query,
   where,
-  updateDoc,
 } from "firebase/firestore";
 import { deleteObject, getDownloadURL, ref } from "firebase/storage";
 import React, { useCallback, useEffect, useState } from "react";

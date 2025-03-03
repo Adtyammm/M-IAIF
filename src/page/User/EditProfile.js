@@ -16,6 +16,7 @@ const EditProfile = ({ closeModal }) => {
   const [avatarFile, setAvatarFile] = useState(null); // State untuk file foto profil
   const [loading, setLoading] = useState(false); // State untuk loading
   const [isModalVisible, setIsModalVisible] = useState(false); // State untuk visibilitas modal sukses
+  const [avatar, setAvatar] = useState(null); // State untuk menyimpan URL avatar
 
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged((user) => {
@@ -26,8 +27,8 @@ const EditProfile = ({ closeModal }) => {
           getDocs(userCollectionRef)
             .then((querySnapshot) => {
               querySnapshot.forEach((doc) => {
-                if (doc.exists()) {
-                  const data = doc.data();
+                const data = doc.data();
+                if (data.uid === user.uid) {
                   setUserName(data.name);
                   setNim(data.nim);
                   setEmail(data.email);
@@ -35,8 +36,7 @@ const EditProfile = ({ closeModal }) => {
                   setYearClass(data.yearClass);
                   setGraduated(data.graduated);
                   setGender(data.gender);
-                } else {
-                  console.log("Pengguna tidak ditemukan di Firestore");
+                  setAvatar(data.avatar); // Setel URL avatar dari Firestore
                 }
               });
             })
@@ -71,7 +71,7 @@ const EditProfile = ({ closeModal }) => {
     setLoading(true); // Set loading to true
 
     try {
-      let avatarURL = null;
+      let avatarURL = avatar; // Gunakan avatar yang sudah ada di state jika tidak meng-upload gambar baru.
 
       // Jika ada file avatar yang diunggah, upload ke Firebase Storage
       if (avatarFile) {
@@ -107,7 +107,7 @@ const EditProfile = ({ closeModal }) => {
           yearClass: yearClass,
           graduated: graduated,
           gender: gender,
-          ...(avatarURL && { avatar: avatarURL }), // Hanya tambahkan avatar jika URL tersedia
+          avatar: avatarURL || "default-avatar-url", // Menambahkan avatar, menggunakan URL default jika tidak ada
         });
 
         setLoading(false); // Set loading to false after update

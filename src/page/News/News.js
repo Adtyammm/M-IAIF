@@ -115,7 +115,7 @@ const News = () => {
                         <h3>
                           <a
                             href="#s"
-                            className="block mb-4 font-semibold text-xl text-primary hover:text-highlight text-ellipsis"
+                            className="block mb-4 font-semibold text-xl text-blue-500 hover:text-highlight text-ellipsis"
                           >
                             {newsItem.title}
                           </a>

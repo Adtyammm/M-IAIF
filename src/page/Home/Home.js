@@ -21,6 +21,7 @@ import {
   faMale,
   faFemale,
 } from "@fortawesome/free-solid-svg-icons";
+import SliderNews from "../components/SliderNews";
 
 const Home = () => {
   const [totalAlumni, setTotalAlumni] = useState(0);
@@ -232,7 +233,7 @@ const Home = () => {
           </div>
         </section>
 
-        <section id="berita" className="pt-36 pb-32 bg-slate-100 scroll">
+        <section id="berita" className="pt-32 pb-32 bg-slate-100 scroll">
           <div className="container mx-auto">
             <div className="w-full px-4">
               <div className="max-w-xl mx-auto text-center mb-16">
@@ -242,43 +243,7 @@ const Home = () => {
               </div>
             </div>
 
-            <div className="flex flex-wrap">
-              {newsData.map((news) => (
-                <div key={news.id} className="w-full px-4 lg:w-1/2 xl:w-1/3">
-                  <div className="bg-white rounded-xl overflow-hidden shadow-lg mb-10">
-                    <div className="w-full h-60 overflow-hidden">
-                      <img
-                        src={news.imageUrl}
-                        alt={news.title}
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
-                    <div className="py-6 px-6">
-                      <h3>
-                        <a
-                          href={`/news/${news.id}`} // Use Link component from 'react-router-dom' for navigation
-                          className="block mb-3 font-semibold text-xl text-primary hover:text-highlight truncate"
-                        >
-                          {news.title}
-                        </a>
-                      </h3>
-                      <p className="font-medium text-base text-stroke mb-2">
-                        {news.description}
-                      </p>
-                      <div className="flex justify-end pt-4">
-                        <Link
-                          to={`/news/${news.id}`}
-                          className="font-medium text-sm text-white bg-blue-500 py-2 px-4 rounded-lg hover:opacity-60 duration-300 flex items-center"
-                        >
-                          Baca Selengkapnya
-                          <i className="fas fa-arrow-right ml-2"></i>
-                        </Link>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
+            <SliderNews />
 
             <div className="flex justify-end pt-4">
               <Link
